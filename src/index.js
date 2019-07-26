@@ -2,158 +2,32 @@ const express = require('express')
 const app = express()
 const port = process.env.PORT || 3000
 require('./db/mongoose')
-const User = require('./models/user')
-const Task = require('./models/task')
+// const User = require('./models/user')
 
+const userRouter = require('./routers/user')
+const taskRouter = require('./routers/task')
 
 app.use(express.json())
-
-app.post('/tasks', async (req, res) => {    
-    // console.log(req.body)
-    const task = new Task(req.body)
-    try {
-        await task.save()
-        res.status(201).send(task)
-    } catch(e) {
-            res.status(400).send(e)
-    }
-})
-
-app.get('/users', async (req,res) => {
-    try {
-        const users = await User.find({})
-        console.log("Getting users")
-
-        res.status(200).send(users)
-    } catch(e) {
-        res.status(500).send(e)
-    }
-})
-
-
-
-app.patch('/users/:id', async (req,res) => {
-    const updates = Object.keys(req.body)
-    const allowedUpdates = ['name','age','email','password']
-    const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
-
-    if(!isValidOperation) {
-        return res.status(400).send({error:'Invalid updates'})
-    }
-
-    try{
-        //attempt to update user by ID
-        const user = await User.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators:true})
-
-        if(!user) {
-            return res.status(404).send()
-        }
-        res.status(200).send(user)
-
-    } catch(e) {        
-        res.status(400).send(e)
-    }
-})
-
-
-app.patch('/tasks/:id', async(req,res) => {
-    const updates = Object.keys(req.body)
-    const allowedUpdates = ['description', 'completed']
-    const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
-
-    if(!isValidOperation) {
-        return res.status(400).send({error:'Invalid updates'})
-    }
-    try {
-        const task = await Task.findByIdAndUpdate(req.params.id, req.body, {new:true, runValidators:true})
-
-        if(!task) {
-            res.status(400).send()
-        }
-        res.status(200).send(task)
-    } catch(e) {
-        res.status(400).send(e)
-    }
-})
-
-app.delete('/users/:id', async (req,res) => {
-    
-
-    try {
-        const user = await User.findByIdAndDelete(req.params.id)
-        if(!user) {
-            res.status(404).send()
-        }
-        res.send(user)
-    } catch (e) {
-        res.status(500).send()
-    }
-})
-
-app.delete('/tasks/:id', async (req,res) => {
-    try {
-        const task = await Task.findByIdAndDelete(req.params.id)
-        if(!task) {
-            return res.status(404).send()
-        }
-        res.send(task)
-    } catch (e) {
-        res.status(500).send()
-    }
-})
-
-app.get('/tasks', async (req,res) => {
-    try {
-        const tasks = await Task.find({})
-        res.status(200).send(tasks)
-    } catch (e) {
-        res.status(400).send(e)
-    }
-})
-
-app.get('/tasks/:id', async (req,res) => {
-    const _id = req.params.id
-    try {
-        const task = await Task.findById(_id)
-        if(!task) {
-            return res.status(404).send()
-        }
-        res.status(200).send(task)
-    } catch( e) {
-        res.status(500).send()
-    }
-})
+app.use(userRouter)
+app.use(taskRouter)
 
 
 
 
-app.get('/users/:id', async (req,res) => {
-    const _id = req.params.id
-    try {        
-        const user = await User.findById(_id)
-        if(!user) {
-            return res.status(404).send()
-        }
-        res.send(user)
-    } catch(e) {
-        res.status(500).send()
-    }
-    console.log(req.params)
-})
-
-app.post('/users', async (req,res) => {
-    console.log(req.body)
-    const user = new User(req.body)
-    try {
-        await user.save()
-        res.status(201).send(user)
-    } catch (e) {
-        res.status(400).send(e)
-    }
-})
 
 app.listen((port), () => {
     console.log('Listening on port ' + port)
 })
 
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs')
+const myFunction = async () => {
+    const token = jwt.sign({_id:"12345"}, 'thisismynewcourse', {expiresIn:'7 days'})
+    console.log(token)
 
+    const data = jwt.verify(token,'thisismynewcourse')
+    console.log(data)
+    
+}
+
+myFunction()
